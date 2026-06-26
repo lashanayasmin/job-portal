@@ -50,7 +50,10 @@ export default function SeekerDashboard() {
     e.preventDefault();
     const formData = new FormData();
     formData.append('phone', form.phone);
-    formData.append('skills', form.skills.split(',').map((s) => s.trim()).filter(Boolean));
+    // Append each skill separately so multer parses `skills` as an array.
+    // (Appending the array directly coerces it into one comma-joined string.)
+    const skills = form.skills.split(',').map((s) => s.trim()).filter(Boolean);
+    skills.forEach((skill) => formData.append('skills', skill));
     formData.append('experience', form.experience);
     formData.append('education', form.education);
     if (resume) formData.append('resume', resume);

@@ -13,7 +13,17 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+
+// Ensure the DB is connected before handling any request. The connection is
+// cached (see config/db.js) so this is a no-op once warm.
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
@@ -27,16 +37,12 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-const start = async () => {
-  try {
-    await connectDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Server startup failed:', error.message);
-    process.exit(1);
-  }
-};
+// Only start a long-running server when run directly (local dev). On Vercel the
+// app is imported and invoked as a serverless function instead.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
-start();
+module.exports = app;

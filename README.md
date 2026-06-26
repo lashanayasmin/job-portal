@@ -1,130 +1,154 @@
-# Job Portal - MERN Stack (For Fresh Graduates)
+# Job Portal — MERN Stack (For Fresh Graduates)
 
-A complete job portal built with the MERN stack (MongoDB, Express, React, Node.js) featuring JWT authentication, role-based access, and a modern responsive UI.
+A full-stack job portal built with the MERN stack (MongoDB, Express, React, Node.js) featuring JWT authentication, role-based access, resume uploads to Cloudinary, and a modern responsive UI. Designed to connect **job seekers** (fresh graduates) with **employers**.
 
-## Features
+## What this project does
 
-- **User Authentication** - Signup, Login, Logout with JWT
-- **Role-based Access** - Job Seeker and Employer roles
-- **Employer Dashboard** - Post/Edit/Delete jobs, View applicants, Update application status
-- **Job Seeker Dashboard** - Update profile, Upload resume (PDF), Apply for jobs, View applied jobs
-- **Job Search & Filter** - Search by title/company/location, Filter by job type
-- **Responsive UI** - Built with Tailwind CSS
-- **Protected Routes** - Role-based route protection
-- **Form Validation** - Client and server-side validation
-- **RESTful API** - Clean MVC architecture
-- **Error Handling** - Comprehensive error handling and loading states
+The app has two kinds of users, each with their own dashboard:
+
+- **Job Seekers** sign up, build a profile (phone, skills, education, experience), upload a PDF resume, browse and search jobs, and apply to them. They can track the status of every application (pending → reviewed → shortlisted / rejected).
+- **Employers** sign up, post job listings, edit or delete them, view the applicants for each job (with their resume and profile), and move each application through the hiring pipeline.
+
+Anyone (even logged-out visitors) can browse and search the public job listings; applying and posting require an account with the matching role.
+
+### How it fits together
+
+```
+React (Vite + Redux Toolkit)  ──HTTP──►  Express REST API  ──►  MongoDB (Mongoose)
+        │                                        │
+        │                                        └──►  Cloudinary  (PDF resume storage)
+        └─ JWT in localStorage, sent as Bearer token on every request
+```
+
+- **Auth**: passwords are hashed with bcrypt; login returns a JWT that the frontend stores in `localStorage` and attaches to every API call. Protected routes are guarded both on the client (`ProtectedRoute`) and the server (`protect` + `authorize` middleware).
+- **Authorization**: route access is gated by role — only `employer`s can create/edit/delete jobs and review applicants; only `seeker`s can apply and view their own applications. Ownership is enforced server-side (an employer can only touch their own jobs/applicants).
+- **File uploads**: resumes (PDF, max 5 MB) are uploaded via Multer straight to **Cloudinary** — no local disk is used, which is what makes the app deployable to serverless platforms like Vercel.
+- **State**: the frontend uses Redux Toolkit slices (`auth`, `jobs`, `applications`) with async thunks wrapping Axios calls.
 
 ## Tech Stack
 
-- MongoDB + Mongoose
-- Express.js
-- React 18 + Vite
-- Redux Toolkit
-- Tailwind CSS
-- JWT Authentication
-- Multer (file upload)
+| Layer | Tech |
+|-------|------|
+| Frontend | React 18, Vite, Redux Toolkit, React Router, Tailwind CSS, React Toastify, React Icons |
+| Backend | Node.js, Express, Mongoose |
+| Database | MongoDB (Atlas in production) |
+| Auth | JWT, bcryptjs |
+| File storage | Multer + Cloudinary |
 
 ## Project Structure
 
 ```
 job-portal/
+├── vercel.json              # Single-deployment config (serves frontend + routes /api to backend)
 ├── backend/
-│   ├── config/          # DB connection
-│   ├── controllers/     # Route handlers
-│   ├── middleware/       # Auth, error handling, upload
-│   ├── models/          # Mongoose schemas
-│   ├── routes/          # Express routes
-│   ├── uploads/         # Resume PDF storage
-│   ├── .env             # Environment variables
-│   └── server.js        # Entry point
+│   ├── api/index.js         # Vercel serverless entry (exports the Express app)
+│   ├── config/              # DB connection (cached) + Cloudinary config
+│   ├── controllers/         # Route handlers (auth, jobs, applications)
+│   ├── middleware/          # auth (protect/authorize), errorHandler, upload (Multer→Cloudinary)
+│   ├── models/              # Mongoose schemas (User, Job, Application)
+│   ├── routes/              # Express route definitions
+│   ├── server.js            # Express app + local dev entry point
+│   └── .env                 # Environment variables (not committed)
 └── frontend/
     ├── src/
-    │   ├── components/  # Reusable React components
-    │   ├── pages/       # Page components
-    │   ├── redux/       # Redux store & slices
-    │   └── utils/       # Axios config
+    │   ├── components/      # Navbar, JobCard, ProtectedRoute, Spinner
+    │   ├── pages/           # Home, Login, Signup, JobListings, JobDetail,
+    │   │                    #   Seeker/Employer dashboards, Post/Edit job
+    │   ├── redux/           # Store + auth/jobs/applications slices
+    │   └── utils/           # Axios instance, resume URL helper
     ├── index.html
-    └── vite.config.js
+    └── vite.config.js       # Dev server proxies /api → localhost:5000
 ```
 
-## Setup Instructions
+## Local Development
 
 ### Prerequisites
 
-- Node.js (v16+)
-- MongoDB (local or MongoDB Atlas)
-- npm or yarn
+- Node.js v16+
+- A MongoDB database (local or [MongoDB Atlas](https://www.mongodb.com/atlas))
+- A free [Cloudinary](https://cloudinary.com/) account (for resume uploads)
 
-### 1. Clone and Install Dependencies
+### 1. Install dependencies
 
 ```bash
-# Install backend dependencies
-cd backend
-npm install
-
-# Install frontend dependencies
-cd ../frontend
-npm install
+cd backend && npm install
+cd ../frontend && npm install
 ```
 
-### 2. Configure Environment Variables
+### 2. Configure backend environment
 
-Create `backend/.env`:
+Fill in `backend/.env` (template already present):
 
 ```env
 PORT=5000
-MONGO_URI=mongodb://localhost:27017/jobportal
-JWT_SECRET=your_jwt_secret_key_here
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRE=7d
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-### 3. Run the Application
+The frontend needs **no** `.env` locally — Vite proxies `/api` to the backend automatically.
+
+### 3. Run
 
 ```bash
-# Start backend (from backend folder)
-npm run dev
+# Terminal 1 — backend
+cd backend && npm run dev      # http://localhost:5000
 
-# Start frontend (from frontend folder, in a new terminal)
-npm run dev
+# Terminal 2 — frontend
+cd frontend && npm run dev     # http://localhost:5173
 ```
 
-- Backend runs on: `http://localhost:5000`
-- Frontend runs on: `http://localhost:5173`
+## Deploying to Vercel (single project)
 
-The Vite dev server proxies `/api` requests to the backend automatically.
+This repo is configured for a **single Vercel deployment** that serves the React build and the API under one domain. The root `vercel.json` builds the frontend as static output and routes `/api/*` to the backend serverless function.
 
-### 4. Build for Production
+1. **Import the repo** into Vercel and set **Root Directory** to `./` (the repo root).
+2. **Environment Variables** — add the backend ones in the Vercel dashboard:
+   `MONGO_URI`, `JWT_SECRET`, `JWT_EXPIRE`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+   Do **not** set `VITE_API_URL` — the app calls `/api` on the same domain.
+3. **MongoDB Atlas → Network Access** — allow `0.0.0.0/0` (Vercel's serverless IPs are dynamic).
+4. **Deploy.** The site and `…/api/health` will both respond on the same URL.
 
-```bash
-cd frontend
-npm run build
-```
+> The `.env` file is git-ignored and never uploaded — that's why the same variables must be re-entered in the Vercel dashboard.
 
-## API Endpoints
+## API Reference
 
 ### Auth
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user
-- `PUT /api/auth/profile` - Update profile + upload resume
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| POST | `/api/auth/register` | Public | Register a new user |
+| POST | `/api/auth/login` | Public | Log in, returns JWT |
+| GET | `/api/auth/me` | Authenticated | Get current user |
+| PUT | `/api/auth/profile` | Authenticated | Update profile + upload resume |
 
 ### Jobs
-- `GET /api/jobs` - Get all jobs (with search/filter)
-- `GET /api/jobs/employer` - Get employer's jobs
-- `GET /api/jobs/:id` - Get single job
-- `POST /api/jobs` - Create job (employer)
-- `PUT /api/jobs/:id` - Update job (employer)
-- `DELETE /api/jobs/:id` - Delete job (employer)
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| GET | `/api/jobs` | Public | List jobs (supports `search`, `type`, `location` query params) |
+| GET | `/api/jobs/employer` | Employer | Get the logged-in employer's jobs |
+| GET | `/api/jobs/:id` | Public | Get a single job |
+| POST | `/api/jobs` | Employer | Create a job |
+| PUT | `/api/jobs/:id` | Employer (owner) | Update a job |
+| DELETE | `/api/jobs/:id` | Employer (owner) | Delete a job |
 
 ### Applications
-- `POST /api/applications/:jobId/apply` - Apply for job (seeker)
-- `GET /api/applications/mine` - Get my applications (seeker)
-- `GET /api/applications/:jobId` - Get applications for a job (employer)
-- `PUT /api/applications/:id/status` - Update application status (employer)
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| POST | `/api/applications/:jobId/apply` | Seeker | Apply for a job (PDF resume upload) |
+| GET | `/api/applications/mine` | Seeker | List my applications |
+| GET | `/api/applications/:jobId` | Employer (owner) | List applicants for a job |
+| PUT | `/api/applications/:id/status` | Employer (owner) | Update an application's status |
 
-## Database Collections
+### Health
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Returns `{ status: 'ok' }` |
 
-- **Users** - Stores seekers and employers with profile data
-- **Jobs** - Job listings posted by employers
-- **Applications** - Job applications with status tracking
+## Data Models
+
+- **User** — `name`, `email`, `password` (hashed), `role` (`seeker` \| `employer`), and a `profile` sub-document (`phone`, `skills[]`, `experience`, `education`, `resume`, `company`).
+- **Job** — `company`, `title`, `location`, `type` (Full-time / Part-time / Internship / Contract / Remote), `description`, `requirements[]`, `salary`, `vacancies`, `employer` (ref User).
+- **Application** — `job` (ref Job), `seeker` (ref User), `resume` (Cloudinary URL), `status` (pending / reviewed / shortlisted / rejected). A unique index on `(job, seeker)` prevents duplicate applications.
