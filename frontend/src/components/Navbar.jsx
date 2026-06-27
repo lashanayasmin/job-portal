@@ -48,7 +48,7 @@ export default function Navbar() {
               JobPortal
             </span>
             <span className="hidden sm:inline text-xs text-ink-300 italic font-medium">
-              &mdash; find work you love
+              &mdash; your career starts here
             </span>
           </Link>
 

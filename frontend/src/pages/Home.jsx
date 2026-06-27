@@ -78,9 +78,9 @@ function HeroSection() {
             </span>
 
             <h1 className="heading-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-ink-900 leading-[1.08] tracking-tight mb-6">
-              Find work
+              Your career
               <br />
-              <span className="text-brand-600 italic">you&apos;ll love</span>
+              <span className="text-brand-600 italic">starts here</span>
             </h1>
 
             <p className="text-lg text-ink-500 leading-relaxed max-w-md mb-8">
@@ -303,8 +303,8 @@ function FooterSection() {
           <div className="md:col-span-2">
             <span className="text-2xl font-bold heading-serif text-white">JobPortal</span>
             <p className="text-ink-400 text-sm leading-relaxed max-w-sm mt-3">
-              The friendly place for fresh graduates to find work they love
-              and kickstart their careers.
+              The professional platform for fresh graduates to launch
+              their careers and connect with top employers.
             </p>
           </div>
           {Object.entries(FOOTER_LINKS).map(([heading, links]) => (

@@ -5,6 +5,7 @@ import { fetchEmployerJobs, deleteJob } from '../redux/slices/jobSlice';
 import { fetchJobApplications, updateApplicationStatus } from '../redux/slices/applicationSlice';
 import Spinner from '../components/Spinner';
 import { toast } from 'react-toastify';
+import { getResumeUrl } from '../utils/resume';
 import {
   FiPlus, FiEdit2, FiTrash2, FiEye, FiBriefcase, FiUsers,
   FiCheck, FiX, FiSearch, FiFileText, FiClock, FiMapPin,
@@ -261,7 +262,7 @@ function ApplicantCard({ app, onStatusChange }) {
       )}
 
       <div className="flex flex-wrap items-center gap-3 text-xs pt-3 border-t border-amber-100">
-        <a href={`http://localhost:5000/${app.resume}`} target="_blank" rel="noopener noreferrer"
+        <a href={getResumeUrl(app.resume)} target="_blank" rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-brand-600 hover:text-brand-700 font-medium">
           <FiEye size={14} /> View Resume
         </a>

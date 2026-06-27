@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { updateProfile } from '../redux/slices/authSlice';
 import { fetchMyApplications } from '../redux/slices/applicationSlice';
 import Spinner from '../components/Spinner';
+import { getResumeUrl } from '../utils/resume';
 import { toast } from 'react-toastify';
 import {
   FiUser, FiMail, FiPhone, FiBriefcase, FiFileText, FiUpload,
@@ -192,7 +193,7 @@ function ViewProfile({ user }) {
           </div>
         </div>
         {user.profile?.resume && (
-          <a href={`http://localhost:5000/${user.profile.resume}`} target="_blank" rel="noopener noreferrer"
+          <a href={getResumeUrl(user.profile.resume)} target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 font-medium">
             <FiFileText size={14} /> View Resume
           </a>
@@ -267,7 +268,7 @@ function ResumeUpload({ resume, setResume, user }) {
         <input type="file" accept=".pdf,application/pdf" onChange={(e) => setResume(e.target.files[0])} className="sr-only" />
       </label>
       {user.profile?.resume && (
-        <a href={`http://localhost:5000/${user.profile.resume}`} target="_blank" rel="noopener noreferrer"
+        <a href={getResumeUrl(user.profile.resume)} target="_blank" rel="noopener noreferrer"
           className="text-xs text-brand-600 hover:underline inline-flex items-center gap-1 mt-1.5">
           <FiEye size={12} /> View current resume
         </a>
@@ -322,7 +323,7 @@ function ApplicationCard({ app }) {
         <span className="inline-flex items-center gap-1">
           <FiCalendar size={11} /> {new Date(app.createdAt).toLocaleDateString()}
         </span>
-        <a href={`http://localhost:5000/${app.resume}`} target="_blank" rel="noopener noreferrer"
+        <a href={getResumeUrl(app.resume)} target="_blank" rel="noopener noreferrer"
           className="text-brand-600 hover:underline inline-flex items-center gap-1 ml-auto font-medium">
           <FiEye size={11} /> Resume
         </a>
