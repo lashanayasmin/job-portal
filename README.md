@@ -2,7 +2,7 @@
 
 A full-stack job portal built with the MERN stack (MongoDB, Express, React, Node.js) featuring JWT authentication, role-based access, resume uploads to Cloudinary, and a modern responsive UI. Designed to connect **job seekers** (fresh graduates) with **employers**.
 
-## What this project does
+## What this project does  
 
 The app has two kinds of users, each with their own dashboard:
 
